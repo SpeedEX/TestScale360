@@ -3,41 +3,31 @@ package controllers
 import javax.inject._
 import models._
 import play.api.Logger
+import play.api.libs.json._
 import play.api.mvc._
-import repositories.TaskList
+import repositories.TaskListRepository
 
 import scala.util.{Failure, Success, Try}
-import play.api.libs.json._
 
 @Singleton
-class TaskController @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
+class TaskController @Inject()(cc: ControllerComponents, repository: TaskListRepository)
+  extends AbstractController(cc) {
 
   import Task._
   import TaskWithId._
 
   def tasks() = Action { implicit request: Request[AnyContent] =>
-    val allTasks = TaskList.taskList
-      .map {
-        case (id, task) => Json.toJson(task.withId(id))
-      }
-      .toArray
-
+    val allTasks = repository.getAllTasks
     val value: JsValue = Json.toJson(allTasks)
-
-    Logger.info(value.toString())
-    Logger.info(allTasks.toString)
-    Logger.info(TaskList.taskList.toString)
 
     Ok(value)
   }
 
   def getTask(id: Long) = Action { implicit request: Request[AnyContent] =>
 
-    TaskList.taskList.get(id) match {
-      case Some(task) => Ok(Json.toJson(task.withId(id)))
-      case None => {
-        NotFound(s"Task ID $id is not exist")
-      }
+    repository.getTask(id) match {
+      case Some(task) => Ok(Json.toJson(task))
+      case None => NoContent
     }
   }
 
@@ -46,11 +36,10 @@ class TaskController @Inject()(cc: ControllerComponents) extends AbstractControl
       .map(jsonBody => {
         Try(jsonBody.as[Task]) match {
           case Success(newTask: Task) => {
-            val maxId: Long = if (TaskList.taskList.isEmpty) 0 else TaskList.taskList.keys.max
-            val newId = maxId + 1
-
-            TaskList.taskList.put(newId, newTask)
-            Ok(s"""task "${Json.toJson(newTask.withId(newId))}" has been added""")
+            repository.addTask(newTask) match {
+              case Some(addedTask) => Created(Json.toJson(addedTask)).withHeaders(("Location", s"/tasks/${addedTask.id}"))
+              case None => InternalServerError
+            }
           }
           case Failure(err: Throwable) => {
             Logger.error(s"""cannot deserialize "$jsonBody" to Task object""", err)
@@ -62,9 +51,9 @@ class TaskController @Inject()(cc: ControllerComponents) extends AbstractControl
   }
 
   def deleteTask(id: Long) = Action { implicit request: Request[AnyContent] =>
-    TaskList.taskList.remove(id) match {
+    repository.delete(id) match {
       case Some(_) => Ok(s"Task ID $id has been removed")
-      case None => NotFound(s"Task ID $id is not exist")
+      case None => NoContent
     }
   }
 
@@ -73,13 +62,9 @@ class TaskController @Inject()(cc: ControllerComponents) extends AbstractControl
       .map(jsonBody => {
         Try(jsonBody.as[OnlyTaskStatus]) match {
           case Success(updatedStatus: OnlyTaskStatus) => {
-            TaskList.taskList.get(id) match {
-              case Some(existingTask) => {
-                TaskList.taskList.remove(id)
-                TaskList.taskList.put(id, existingTask.copy(status = updatedStatus.status))
-                Ok(s"Task ID $id has been updated: ${Json.toJson(updatedStatus)}")
-              }
-              case None => NotFound(s"Task ID $id is not exist")
+            repository.updateStatus(id, updatedStatus.status) match {
+              case Some(updatedTask) => Created(Json.toJson(updatedTask))
+              case None => NoContent
             }
           }
           case Failure(err: Throwable) => {
@@ -95,14 +80,10 @@ class TaskController @Inject()(cc: ControllerComponents) extends AbstractControl
     request.body.asJson
       .map(jsonBody => {
         Try(jsonBody.as[Task]) match {
-          case Success(updatedTask: Task) => {
-            TaskList.taskList.get(id) match {
-              case Some(_) => {
-                TaskList.taskList.remove(id)
-                TaskList.taskList.put(id, updatedTask)
-                Ok(s"Task ID $id has been updated: ${Json.toJson(updatedTask)}")
-              }
-              case None => NotFound(s"Task ID $id is not exist")
+          case Success(updatingTask: Task) => {
+            repository.update(updatingTask.withId(id)) match {
+              case Some(updatedTask) => Created(Json.toJson(updatedTask))
+              case None => NoContent
             }
           }
           case Failure(err: Throwable) => {
