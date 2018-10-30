@@ -16,7 +16,7 @@ class TaskController @Inject()(cc: ControllerComponents, repository: TaskListRep
   import Task._
   import TaskWithId._
 
-  def tasks() = Action { implicit request: Request[AnyContent] =>
+  def getTasks() = Action { implicit request: Request[AnyContent] =>
     val allTasks = repository.getAllTasks
     val value: JsValue = Json.toJson(allTasks)
 
@@ -31,7 +31,7 @@ class TaskController @Inject()(cc: ControllerComponents, repository: TaskListRep
     }
   }
 
-  def newTask() = Action { implicit request: Request[AnyContent] =>
+  def createNewTask() = Action { implicit request: Request[AnyContent] =>
     request.body.asJson
       .map(jsonBody => {
         Try(jsonBody.as[Task]) match {

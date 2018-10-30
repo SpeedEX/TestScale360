@@ -1,9 +1,10 @@
-package controllers
+package testing.controllers
 
+import controllers.HomeController
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice._
-import play.api.test._
 import play.api.test.Helpers._
+import play.api.test._
 
 /**
  * Add your spec here.

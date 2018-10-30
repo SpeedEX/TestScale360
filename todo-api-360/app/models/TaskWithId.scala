@@ -7,6 +7,9 @@ case class TaskWithId(id: Long, title: String, body: String, status: TaskStatus)
   def withoutId: Task = {
     Task(title, body, status)
   }
+  def toStatusOnly: OnlyTaskStatus = {
+    OnlyTaskStatus(status)
+  }
 }
 
 object TaskWithId {
