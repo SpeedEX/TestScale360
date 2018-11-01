@@ -12,9 +12,9 @@ GET     /assets/*file               controllers.Assets.versioned(path="/public",
 
 
 # for tasks-list
-GET     /tasks                          controllers.TaskController.tasks
+GET     /tasks                          controllers.TaskController.getTasks
 GET     /tasks/:id                      controllers.TaskController.getTask(id: Long)
-POST    /tasks                          controllers.TaskController.newTask
+POST    /tasks                          controllers.TaskController.createNewTask
 POST    /tasks/:id/update               controllers.TaskController.updateTask(id: Long)
 POST    /tasks/:id/updatestatus         controllers.TaskController.updateTaskStatus(id: Long)
 DELETE  /tasks/:id                      controllers.TaskController.deleteTask(id: Long)
