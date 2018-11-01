@@ -1,7 +1,7 @@
 package testing.controllers
 
 import controllers.TaskController
-import models.{Task, TaskStatus, TaskWithId}
+import models._
 import org.mockito.ArgumentMatchers.{eq => eqTo}
 import org.mockito.Mockito.when
 import org.scalatest.mockito.MockitoSugar
@@ -192,8 +192,8 @@ class TaskControllerSpecTest extends PlaySpec with GuiceOneAppPerTest with Injec
       val respond = controller.updateTask(updatingTask.id).apply(request)
 
       status(respond) mustBe BAD_REQUEST
-      contentType(respond) mustBe Some("text/plain")
-      contentAsString(respond) mustBe "Task body required"
+      contentType(respond) mustBe Some("application/json")
+      contentAsJson(respond) mustBe Json.toJson(ErrorMessage(BAD_REQUEST, "Body required"))
     }
 
     "return BadRequest error when request have invalid body" in {
@@ -212,8 +212,8 @@ class TaskControllerSpecTest extends PlaySpec with GuiceOneAppPerTest with Injec
       val respond = controller.updateTask(taskId).apply(request)
 
       status(respond) mustBe BAD_REQUEST
-      contentType(respond) mustBe Some("text/plain")
-      contentAsString(respond) mustBe s""""${Json.toJson(updatingTask)}" is invalid"""
+      contentType(respond) mustBe Some("application/json")
+      contentAsJson(respond) mustBe Json.toJson(ErrorMessage(BAD_REQUEST, s"""Cannot deserialize "${Json.toJson(updatingTask)}" to Task object"""))
     }
   }
 
@@ -267,8 +267,8 @@ class TaskControllerSpecTest extends PlaySpec with GuiceOneAppPerTest with Injec
       val respond = controller.updateTaskStatus(updatingTask.id).apply(request)
 
       status(respond) mustBe BAD_REQUEST
-      contentType(respond) mustBe Some("text/plain")
-      contentAsString(respond) mustBe "Task body required"
+      contentType(respond) mustBe Some("application/json")
+      contentAsJson(respond) mustBe Json.toJson(ErrorMessage(BAD_REQUEST, "Body required"))
     }
 
     "return BadRequest error when request have invalid body" in {
@@ -287,8 +287,8 @@ class TaskControllerSpecTest extends PlaySpec with GuiceOneAppPerTest with Injec
       val respond = controller.updateTaskStatus(taskId).apply(request)
 
       status(respond) mustBe BAD_REQUEST
-      contentType(respond) mustBe Some("text/plain")
-      contentAsString(respond) mustBe s""""${Json.toJson(updatingTask)}" is invalid"""
+      contentType(respond) mustBe Some("application/json")
+      contentAsJson(respond) mustBe Json.toJson(ErrorMessage(BAD_REQUEST, s"""Cannot deserialize "${Json.toJson(updatingTask)}" to Task object"""))
     }
   }
 
@@ -310,8 +310,8 @@ class TaskControllerSpecTest extends PlaySpec with GuiceOneAppPerTest with Injec
       val respond = controller.deleteTask(taskId).apply(request)
 
       status(respond) mustBe OK
-      contentType(respond) mustBe Some("text/plain")
-      contentAsString(respond) mustBe s"Task ID $taskId has been removed"
+      contentType(respond) mustBe Some("application/json")
+      contentAsJson(respond) mustBe Json.toJson(OkMessage(s"Task ID $taskId has been removed"))
     }
 
     "return NoContent when task id is not exists" in {
