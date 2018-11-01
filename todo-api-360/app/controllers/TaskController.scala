@@ -13,10 +13,12 @@ import scala.util.{Failure, Success, Try}
 class TaskController @Inject()(cc: ControllerComponents, repository: TaskListRepository)
   extends AbstractController(cc) {
 
+  import ErrorMessage._
+  import OkMessage._
   import Task._
   import TaskWithId._
 
-  def getTasks() = Action { implicit request: Request[AnyContent] =>
+  def getTasks = Action { implicit request: Request[AnyContent] =>
     val allTasks = repository.getAllTasks
     val value: JsValue = Json.toJson(allTasks)
 
@@ -42,17 +44,18 @@ class TaskController @Inject()(cc: ControllerComponents, repository: TaskListRep
             }
           }
           case Failure(err: Throwable) => {
-            Logger.error(s"""cannot deserialize "$jsonBody" to Task object""", err)
-            BadRequest(s""""$jsonBody" is invalid""")
+            val errMessage = s"""Cannot deserialize "$jsonBody" to Task object"""
+            Logger.error(errMessage, err)
+            BadRequest(Json.toJson(ErrorMessage(BAD_REQUEST, errMessage)))
           }
         }
       })
-      .getOrElse(BadRequest("Task body required"))
+      .getOrElse(BadRequest(Json.toJson(ErrorMessage(BAD_REQUEST, "Body required"))))
   }
 
   def deleteTask(id: Long) = Action { implicit request: Request[AnyContent] =>
     repository.delete(id) match {
-      case Some(_) => Ok(s"Task ID $id has been removed")
+      case Some(_) => Ok(Json.toJson(OkMessage(s"Task ID $id has been removed")))
       case None => NoContent
     }
   }
@@ -68,12 +71,13 @@ class TaskController @Inject()(cc: ControllerComponents, repository: TaskListRep
             }
           }
           case Failure(err: Throwable) => {
-            Logger.error(s"""cannot deserialize "$jsonBody" to Task object""", err)
-            BadRequest(s""""$jsonBody" is invalid""")
+            val errMessage = s"""Cannot deserialize "$jsonBody" to Task object"""
+            Logger.error(errMessage, err)
+            BadRequest(Json.toJson(ErrorMessage(BAD_REQUEST, errMessage)))
           }
         }
       })
-      .getOrElse(BadRequest("Task body required"))
+      .getOrElse(BadRequest(Json.toJson(ErrorMessage(BAD_REQUEST, "Body required"))))
   }
 
   def updateTask(id: Long) = Action { implicit request: Request[AnyContent] =>
@@ -87,12 +91,13 @@ class TaskController @Inject()(cc: ControllerComponents, repository: TaskListRep
             }
           }
           case Failure(err: Throwable) => {
-            Logger.error(s"""cannot deserialize "$jsonBody" to Task object""", err)
-            BadRequest(s""""$jsonBody" is invalid""")
+            val errMessage = s"""Cannot deserialize "$jsonBody" to Task object"""
+            Logger.error(errMessage, err)
+            BadRequest(Json.toJson(ErrorMessage(BAD_REQUEST, errMessage)))
           }
         }
       })
-      .getOrElse(BadRequest("Task body required"))
+      .getOrElse(BadRequest(Json.toJson(ErrorMessage(BAD_REQUEST, "Body required"))))
   }
 }
 
