@@ -33,6 +33,8 @@ fullClasspath in assembly += Attributed.blank(PlayKeys.playPackageAssets.value)
 packageName in Docker := "todo-360-app"
 version in Docker := "0.1"
 dockerExposedPorts in Docker := Seq(9000)
+dockerUsername in Docker := Some("speedex")
+//dockerRepository in Docker := Some("index.docker.io")
 // mappings in Docker := mappings.value
 
 enablePlugins(JavaAppPackaging)
